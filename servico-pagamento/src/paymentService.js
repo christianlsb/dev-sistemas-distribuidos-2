@@ -10,11 +10,28 @@ const dbClient = new Client({
 });
 dbClient.connect();
 
+async function createTableIfNotExists() {
+    const query = `
+    CREATE TABLE IF NOT EXISTS transacoes (
+      id SERIAL PRIMARY KEY,
+      userId VARCHAR(50),
+      amount DECIMAL,
+      status VARCHAR(20)
+    )
+  `;
+    await dbClient.query(query);
+}
+
+createTableIfNotExists();
+
 async function handlePaymentRequest(req, res) {
     const { userId, amount } = req.body;
     const transaction = { userId, amount, status: 'pendente' };
 
-    await dbClient.query('INSERT INTO transacoes (userId, amount, status) VALUES ($1, $2, $3)', [userId, amount, 'pendente']);
+    await dbClient.query(
+        'INSERT INTO transacoes (userId, amount, status) VALUES ($1, $2, $3)',
+        [userId, amount, 'pendente']
+    );
 
     const channel = await connect();
     channel.sendToQueue('notificacoes', Buffer.from(JSON.stringify({ type: 'transacao-pendente', userId })));

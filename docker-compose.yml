@@ -1,5 +1,20 @@
 version: '3'
 services:
+  servico-pagamento:
+    build: ./servico-pagamento
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  servico-notificacao:
+    build: ./servico-notificacao
+    ports:
+      - "3002:3002"
+    depends_on:
+      - rabbitmq
+
   postgres:
     image: postgres
     environment:
@@ -8,17 +23,9 @@ services:
       POSTGRES_DB: pagamentodb
     ports:
       - "5432:5432"
-    networks:
-      - ecommerce-net
 
   rabbitmq:
     image: rabbitmq:3-management
     ports:
       - "5672:5672"
-      - "15672:15672" 
-    networks:
-      - ecommerce-net
-
-networks:
-  ecommerce-net:
-    driver: bridge
+      - "15672:15672"
